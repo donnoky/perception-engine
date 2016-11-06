@@ -2,20 +2,31 @@
 import gensim
 import numpy as np
 from nltk.corpus import stopwords
+from nltk.tokenize import RegexpTokenizer
+# need to install nltk corpus first!
+# nltk.download()
 
 
 def score(text, label, model):
-    score = []
-    text = text.split(' ')
+    score_list = []
     for word in text:
         try:
-            score.append(model.similarity(word, label))
+            score_list.append(model.similarity(word, label))
         except KeyError as e:
             continue
-    return score
+    return score_list
 
-def remove_stop_words(text, model):
-    return ' '.join([word for word in text.split() if word in model.vocab])    
+
+def remove_stop_words(text):
+    text = [w for w in text if w not in stopwords.words('english')]
+    return text
+
+
+def tokenize_remove_punctuation(txt_str):
+    tokenizer = RegexpTokenizer(r'\w+')
+    text = tokenizer.tokenize(txt_str)
+    return text
+
 
 keywords = ['Fun', 
             'Cheap Interior', 
@@ -31,6 +42,7 @@ keywords = ['Fun',
             'Special',
             ]
 
+
 if __name__ == "__main__":
     
     print("Importing model...")
@@ -38,8 +50,10 @@ if __name__ == "__main__":
     # Load Google's pre-trained Word2Vec model.
     model = gensim.models.Word2Vec.load_word2vec_format('GoogleNews-vectors-negative300.bin', binary=True)  
     
-    txt = 'Count me among the embittered, my frustration growing with each passing year as another European sports wagon or hot hatch fails to make it to this side of the Atlantic.'
-    txt = remove_stop_words(txt, model)
-    scores = score(txt, keywords[0], model) 
+    txt_string = 'Count me among the embittered, my frustration growing with each passing year as another ' \
+                 'European sports wagon or hot hatch fails to make it to this side of the Atlantic.'
+    words = tokenize_remove_punctuation(txt_string)
+    words = remove_stop_words(words)
+    scores = score(words, keywords[0], model)
     print scores
     print max(scores)
